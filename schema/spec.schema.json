@@ -82,6 +82,10 @@
         "secondary": { "type": "string" }
       }
     },
+    "preferred_elements": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
     "avoid_elements": {
       "type": "array",
       "items": { "type": "string" }
