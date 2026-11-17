@@ -1,0 +1,13 @@
+{
+  "partner_a_name": { "latin": "Mira Chen" },
+  "partner_b_name": { "latin": "Daniel Osei" },
+  "date": "2027-06-12",
+  "design_basis": "names",
+  "style_sliders": {
+    "minimal_to_ornate": 0.3,
+    "modern_to_classic": 0.3,
+    "eastern_to_western": 0.8,
+    "handwritten_to_print": 0.4
+  },
+  "usage_targets": ["invitation"]
+}

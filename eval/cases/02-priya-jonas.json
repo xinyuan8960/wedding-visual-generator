@@ -1,0 +1,12 @@
+{
+  "partner_a_name": { "latin": "Priya Nair" },
+  "partner_b_name": { "latin": "Jonas Falk" },
+  "date": "2027-09-04",
+  "design_basis": "names",
+  "style_sliders": {
+    "minimal_to_ornate": 0.4,
+    "modern_to_classic": 0.7,
+    "eastern_to_western": 0.6,
+    "handwritten_to_print": 0.5
+  }
+}

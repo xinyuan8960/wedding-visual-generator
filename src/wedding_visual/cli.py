@@ -6,6 +6,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+from .evaluation import pass_rate, run_eval_set
 from .layout.glyphs import Font
 from .layout.monogram import compose_monogram, initial_of
 from .mapping import questionnaire_to_spec
@@ -167,6 +168,24 @@ def _cmd_qa(args: argparse.Namespace) -> int:
     return 1 if any(f["level"] == "FAIL" for f in findings) else 0
 
 
+def _cmd_eval(args: argparse.Namespace) -> int:
+    results = run_eval_set(cases_dir=args.cases_dir, seed=args.seed)
+
+    if args.json:
+        print(json.dumps(results, indent=2, ensure_ascii=False))
+        return 0
+
+    for r in results:
+        mark = "PASS" if r["passed"] else "FAIL"
+        c = r["counts"]
+        print(
+            f"[{mark}] {r['case']:24s} {r['partner_a']} & {r['partner_b']:20s} "
+            f"{r['arrangement']:14s} FAIL={c['FAIL']} WARN={c['WARN']} INFO={c['INFO']}"
+        )
+    print(f"\npass rate: {pass_rate(results):.0%} ({sum(r['passed'] for r in results)}/{len(results)})")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="wedding-visual")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -218,6 +237,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_qa.add_argument("path", help="Path to a spec.json with design_basis: names")
     p_qa.add_argument("--json", action="store_true", help="Machine-readable output")
     p_qa.set_defaults(func=_cmd_qa)
+
+    p_eval = sub.add_parser(
+        "eval",
+        help="Run every case in eval/cases/ through questionnaire -> spec -> QA and report a pass rate",
+    )
+    p_eval.add_argument("--cases-dir", help="Override eval/cases/ (mainly for testing)")
+    p_eval.add_argument("--seed", type=int, default=0)
+    p_eval.add_argument("--json", action="store_true", help="Machine-readable output")
+    p_eval.set_defaults(func=_cmd_eval)
 
     return parser
 

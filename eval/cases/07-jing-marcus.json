@@ -1,0 +1,13 @@
+{
+  "partner_a_name": { "latin": "Jing Lu" },
+  "partner_b_name": { "latin": "Marcus Villanueva" },
+  "date": "2027-10-09",
+  "design_basis": "names",
+  "style_sliders": {
+    "minimal_to_ornate": 0.5,
+    "modern_to_classic": 0.65,
+    "eastern_to_western": 0.5,
+    "handwritten_to_print": 0.5
+  },
+  "usage_targets": ["stage-backdrop"]
+}

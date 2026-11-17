@@ -1,0 +1,13 @@
+{
+  "partner_a_name": { "latin": "Grace Kim" },
+  "partner_b_name": { "latin": "Henrik Voss" },
+  "date": "2027-03-27",
+  "design_basis": "names",
+  "style_sliders": {
+    "minimal_to_ornate": 0.05,
+    "modern_to_classic": 0.5,
+    "eastern_to_western": 0.3,
+    "handwritten_to_print": 0.7
+  },
+  "usage_targets": ["merchandise"]
+}

@@ -1,0 +1,12 @@
+{
+  "partner_a_name": { "latin": "Quincy Adebayo" },
+  "partner_b_name": { "latin": "Wren Sato" },
+  "date": "2027-11-02",
+  "design_basis": "names",
+  "style_sliders": {
+    "minimal_to_ornate": 0.5,
+    "modern_to_classic": 0.5,
+    "eastern_to_western": 0.5,
+    "handwritten_to_print": 0.5
+  }
+}

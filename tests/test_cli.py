@@ -133,3 +133,18 @@ def test_qa_rejects_photo_basis(capsys):
     rc = main(["qa", str(FIXTURES / "valid_spec_photo.json")])
     assert rc == 1
     assert "got 'photo'" in capsys.readouterr().err
+
+
+def test_eval_reports_pass_rate(capsys):
+    rc = main(["eval"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "pass rate: 100% (10/10)" in out
+
+
+def test_eval_json_output(capsys):
+    rc = main(["eval", "--json"])
+    assert rc == 0
+    results = json.loads(capsys.readouterr().out)
+    assert len(results) == 10
+    assert all(r["passed"] for r in results)
