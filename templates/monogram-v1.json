@@ -1,0 +1,9 @@
+{
+  "id": "monogram-v1",
+  "design_basis": "names",
+  "font_path": "fonts/EBGaramond/EBGaramond-VariableFont_wght.ttf",
+  "canvas_size": 512,
+  "background": "none",
+  "ink_color": "#1a1a1a",
+  "motif": "rule-and-ring"
+}

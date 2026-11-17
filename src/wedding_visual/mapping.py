@@ -37,7 +37,7 @@ DEFAULT_SLIDERS: dict[str, float] = {
 # templates/ holds more than one candidate per basis, this becomes a lookup/scoring
 # function over a template catalog instead of a constant.
 _TEMPLATE_ID_BY_BASIS = {
-    "names": "monogram-interlocking-v1",
+    "names": "monogram-v1",
     "photo": "silhouette-badge-v1",
 }
 

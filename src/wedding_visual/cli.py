@@ -3,11 +3,15 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tempfile
+from pathlib import Path
 
 from .layout.glyphs import Font
 from .layout.monogram import compose_monogram, initial_of
 from .mapping import questionnaire_to_spec
 from .questionnaire import load_questionnaire
+from .render.export import RendererNotFoundError, export_pdf, export_png
+from .render.svg import UnsupportedDesignBasisError, render_monogram_svg
 from .spec import load_spec
 from .validation import ValidationError, validate_document
 
@@ -97,6 +101,43 @@ def _cmd_monogram_layout(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_render(args: argparse.Namespace) -> int:
+    try:
+        spec = load_spec(args.path)
+    except ValidationError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+
+    try:
+        svg_text = render_monogram_svg(spec)
+    except UnsupportedDesignBasisError as exc:
+        print(f"{args.path}: {exc}", file=sys.stderr)
+        return 1
+
+    if not any([args.output, args.png, args.pdf]):
+        print(svg_text, end="")
+        return 0
+
+    with tempfile.TemporaryDirectory() as tmp:
+        svg_path = Path(args.output) if args.output else Path(tmp) / "render.svg"
+        svg_path.write_text(svg_text, encoding="utf-8")
+        if args.output:
+            print(f"OK: wrote {args.output}")
+
+        try:
+            if args.png:
+                tool = export_png(svg_path, args.png, size=args.png_size)
+                print(f"OK: wrote {args.png} (via {tool})")
+            if args.pdf:
+                tool = export_pdf(svg_path, args.pdf)
+                print(f"OK: wrote {args.pdf} (via {tool})")
+        except RendererNotFoundError as exc:
+            print(exc, file=sys.stderr)
+            return 1
+
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="wedding-visual")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -129,6 +170,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_mono.add_argument("--canvas-size", type=float, default=512.0)
     p_mono.add_argument("-o", "--output", help="Write the layout here instead of stdout")
     p_mono.set_defaults(func=_cmd_monogram_layout)
+
+    p_render = sub.add_parser(
+        "render",
+        help="Render a names-basis spec through the monogram-v1 template to SVG (and optionally PNG/PDF)",
+    )
+    p_render.add_argument("path", help="Path to a spec.json with design_basis: names")
+    p_render.add_argument("-o", "--output", help="Write the SVG here (also stdout if no flag is given)")
+    p_render.add_argument("--png", help="Also export a PNG here (requires resvg, rsvg-convert, or inkscape)")
+    p_render.add_argument("--pdf", help="Also export a PDF here (requires rsvg-convert or inkscape)")
+    p_render.add_argument("--png-size", type=int, help="PNG width/height in pixels (default: the template's canvas size)")
+    p_render.set_defaults(func=_cmd_render)
 
     return parser
 

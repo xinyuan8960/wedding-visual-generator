@@ -77,3 +77,41 @@ def test_monogram_layout_rejects_photo_basis(capsys):
     rc = main(["monogram-layout", str(FIXTURES / "valid_spec_photo.json")])
     assert rc == 1
     assert "only handles 'names'" in capsys.readouterr().err
+
+
+def test_render_to_stdout(capsys):
+    rc = main(["render", str(FIXTURES / "valid_spec_names.json")])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert out.startswith("<svg")
+    assert "<title>" in out
+
+
+def test_render_to_svg_file(tmp_path, capsys):
+    out_path = tmp_path / "logo.svg"
+    rc = main(["render", str(FIXTURES / "valid_spec_names.json"), "-o", str(out_path)])
+    assert rc == 0
+    assert "OK" in capsys.readouterr().out
+    assert out_path.read_text().startswith("<svg")
+
+
+def test_render_rejects_photo_basis(capsys):
+    rc = main(["render", str(FIXTURES / "valid_spec_photo.json")])
+    assert rc == 1
+    assert "got 'photo'" in capsys.readouterr().err
+
+
+def test_render_png_reports_missing_renderer_clearly(monkeypatch, tmp_path, capsys):
+    import shutil
+
+    monkeypatch.setattr(shutil, "which", lambda name: None)
+    rc = main(
+        [
+            "render",
+            str(FIXTURES / "valid_spec_names.json"),
+            "--png",
+            str(tmp_path / "logo.png"),
+        ]
+    )
+    assert rc == 1
+    assert "brew install" in capsys.readouterr().err

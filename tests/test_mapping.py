@@ -26,7 +26,7 @@ def test_names_basis_produces_a_valid_spec(tmp_path):
     assert spec["names"]["partner_b"] == questionnaire["partner_b_name"]
     assert spec["names"]["date"] == questionnaire["date"]
     assert "venues" not in spec  # dropped deliberately, see mapping.py
-    assert spec["layout"]["template_id"] == "monogram-interlocking-v1"
+    assert spec["layout"]["template_id"] == "monogram-v1"
     assert spec["layout"]["monogram_arrangement"] in {
         "interlocking",
         "stacked",

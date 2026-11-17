@@ -14,7 +14,7 @@
     "handwritten_to_print": 0.3
   },
   "layout": {
-    "template_id": "monogram-interlocking-v1",
+    "template_id": "monogram-v1",
     "monogram_arrangement": "interlocking",
     "stroke_width_ratio": 0.04,
     "whitespace_ratio": 0.2
