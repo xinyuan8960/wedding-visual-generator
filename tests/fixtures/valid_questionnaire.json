@@ -1,0 +1,16 @@
+{
+  "partner_a_name": { "latin": "Alex Rivera", "cjk": "亚历克斯" },
+  "partner_b_name": { "latin": "Jordan Lee", "cjk": "乔丹" },
+  "date": "2027-05-01",
+  "venues": ["Garden Pavilion", "Rooftop Reception"],
+  "design_basis": "names",
+  "style_sliders": {
+    "minimal_to_ornate": 0.2,
+    "modern_to_classic": 0.5,
+    "eastern_to_western": 0.5,
+    "handwritten_to_print": 0.3
+  },
+  "usage_targets": ["invitation", "e-invite"],
+  "preferred_elements": ["botanical frame"],
+  "avoid_elements": ["doves", "hearts"]
+}

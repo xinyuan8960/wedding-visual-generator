@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wedding-visual-generator.local/schema/spec.schema.json",
+  "title": "WeddingVisualSpec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "seed", "design_basis", "names", "layout"],
+  "properties": {
+    "version": { "const": "0.1" },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Controls every deterministic random choice in layout/rendering. Same spec + same seed must produce byte-identical output."
+    },
+    "design_basis": { "type": "string", "enum": ["names", "photo"] },
+    "names": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["partner_a", "partner_b"],
+      "properties": {
+        "partner_a": { "$ref": "#/$defs/personName" },
+        "partner_b": { "$ref": "#/$defs/personName" },
+        "date": { "type": "string", "format": "date" }
+      }
+    },
+    "style": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Questionnaire slider values in [0, 1], mapped downstream to concrete layout parameters (stroke width, whitespace, etc). Never consumed directly by a model.",
+      "properties": {
+        "minimal_to_ornate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "modern_to_classic": { "type": "number", "minimum": 0, "maximum": 1 },
+        "eastern_to_western": { "type": "number", "minimum": 0, "maximum": 1 },
+        "handwritten_to_print": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template_id"],
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "description": "References a template under templates/ by id. Templates store only parameters (layout type, font family, stroke-width ratio, whitespace ratio, motif type) -- never another work's geometry."
+        },
+        "monogram_arrangement": {
+          "type": "string",
+          "enum": ["interlocking", "stacked", "circular-badge", "side-by-side"]
+        },
+        "stroke_width_ratio": { "type": "number", "exclusiveMinimum": 0 },
+        "whitespace_ratio": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "photo_silhouette": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_ref", "simplify_tolerance", "stroke_width"],
+      "properties": {
+        "source_ref": {
+          "type": "string",
+          "description": "Local path under private/ or refs/. Never committed; never a URL to someone else's work."
+        },
+        "simplify_tolerance": { "type": "number", "exclusiveMinimum": 0 },
+        "stroke_width": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "usage_targets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["invitation", "e-invite", "stage-backdrop", "merchandise"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "fonts": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Font family names only; actual font files must be OFL-licensed and live under fonts/ with attribution in README.",
+      "properties": {
+        "primary": { "type": "string" },
+        "secondary": { "type": "string" }
+      }
+    },
+    "avoid_elements": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "if": {
+    "properties": { "design_basis": { "const": "photo" } }
+  },
+  "then": {
+    "required": ["photo_silhouette"]
+  },
+  "$defs": {
+    "personName": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "latin": { "type": "string", "minLength": 1 },
+        "cjk": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

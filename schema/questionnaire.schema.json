@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wedding-visual-generator.local/schema/questionnaire.schema.json",
+  "title": "WeddingQuestionnaireAnswers",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["partner_a_name", "partner_b_name", "date", "design_basis"],
+  "properties": {
+    "partner_a_name": { "$ref": "#/$defs/personName" },
+    "partner_b_name": { "$ref": "#/$defs/personName" },
+    "date": { "type": "string", "format": "date" },
+    "venues": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Multiple scenes/locations are allowed."
+    },
+    "design_basis": { "type": "string", "enum": ["names", "photo"] },
+    "photo_ref": {
+      "type": "string",
+      "description": "Local path, required only when design_basis is photo. Never submitted to the repo."
+    },
+    "style_sliders": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minimal_to_ornate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "modern_to_classic": { "type": "number", "minimum": 0, "maximum": 1 },
+        "eastern_to_western": { "type": "number", "minimum": 0, "maximum": 1 },
+        "handwritten_to_print": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "usage_targets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["invitation", "e-invite", "stage-backdrop", "merchandise"]
+      },
+      "uniqueItems": true
+    },
+    "preferred_elements": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "avoid_elements": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "reference_images": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Used only to estimate style_sliders; never traced or copied geometrically."
+    }
+  },
+  "if": {
+    "properties": { "design_basis": { "const": "photo" } }
+  },
+  "then": {
+    "required": ["photo_ref"]
+  },
+  "$defs": {
+    "personName": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "latin": { "type": "string", "minLength": 1 },
+        "cjk": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

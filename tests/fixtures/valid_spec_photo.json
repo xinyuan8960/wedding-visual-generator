@@ -1,0 +1,17 @@
+{
+  "version": "0.1",
+  "seed": 7,
+  "design_basis": "photo",
+  "names": {
+    "partner_a": { "latin": "Alex Rivera" },
+    "partner_b": { "latin": "Jordan Lee" }
+  },
+  "layout": {
+    "template_id": "silhouette-badge-v1"
+  },
+  "photo_silhouette": {
+    "source_ref": "private/couple-01.jpg",
+    "simplify_tolerance": 2.0,
+    "stroke_width": 3.0
+  }
+}

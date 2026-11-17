@@ -1,0 +1,28 @@
+{
+  "version": "0.1",
+  "seed": 42,
+  "design_basis": "names",
+  "names": {
+    "partner_a": { "latin": "Alex Rivera", "cjk": "亚历克斯" },
+    "partner_b": { "latin": "Jordan Lee", "cjk": "乔丹" },
+    "date": "2027-05-01"
+  },
+  "style": {
+    "minimal_to_ornate": 0.2,
+    "modern_to_classic": 0.5,
+    "eastern_to_western": 0.5,
+    "handwritten_to_print": 0.3
+  },
+  "layout": {
+    "template_id": "monogram-interlocking-v1",
+    "monogram_arrangement": "interlocking",
+    "stroke_width_ratio": 0.04,
+    "whitespace_ratio": 0.2
+  },
+  "usage_targets": ["invitation", "e-invite"],
+  "fonts": {
+    "primary": "EB Garamond",
+    "secondary": "Cormorant Garamond"
+  },
+  "avoid_elements": ["doves", "hearts"]
+}

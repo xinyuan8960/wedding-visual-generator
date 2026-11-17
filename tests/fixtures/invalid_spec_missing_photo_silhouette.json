@@ -1,0 +1,12 @@
+{
+  "version": "0.1",
+  "seed": 7,
+  "design_basis": "photo",
+  "names": {
+    "partner_a": { "latin": "Alex Rivera" },
+    "partner_b": { "latin": "Jordan Lee" }
+  },
+  "layout": {
+    "template_id": "silhouette-badge-v1"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "version": "0.1",
+  "seed": 1,
+  "design_basis": "names",
+  "names": {
+    "partner_a": { "latin": "Alex Rivera" },
+    "partner_b": { "latin": "Jordan Lee" }
+  },
+  "style": {
+    "minimal_to_ornate": 1.4
+  },
+  "layout": {
+    "template_id": "monogram-interlocking-v1"
+  }
+}
