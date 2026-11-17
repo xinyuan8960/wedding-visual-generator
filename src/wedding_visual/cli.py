@@ -9,8 +9,10 @@ from pathlib import Path
 from .layout.glyphs import Font
 from .layout.monogram import compose_monogram, initial_of
 from .mapping import questionnaire_to_spec
+from .qa.checks import audit
 from .questionnaire import load_questionnaire
 from .render.export import RendererNotFoundError, export_pdf, export_png
+from .render.plan import build_render_plan
 from .render.svg import UnsupportedDesignBasisError, render_monogram_svg
 from .spec import load_spec
 from .validation import ValidationError, validate_document
@@ -138,6 +140,33 @@ def _cmd_render(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_qa(args: argparse.Namespace) -> int:
+    try:
+        spec = load_spec(args.path)
+    except ValidationError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+
+    try:
+        plan = build_render_plan(spec)
+    except UnsupportedDesignBasisError as exc:
+        print(f"{args.path}: {exc}", file=sys.stderr)
+        return 1
+
+    findings = audit(plan)
+
+    if args.json:
+        print(json.dumps(findings, indent=2, ensure_ascii=False))
+    else:
+        icons = {"FAIL": "x", "WARN": "!", "INFO": "-"}
+        if not findings:
+            print(f"{args.path}: no issues found")
+        for f in findings:
+            print(f"[{icons[f['level']]} {f['level']:4s}] ({f['code']}) {f['message']}")
+
+    return 1 if any(f["level"] == "FAIL" for f in findings) else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="wedding-visual")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -181,6 +210,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_render.add_argument("--pdf", help="Also export a PDF here (requires rsvg-convert or inkscape)")
     p_render.add_argument("--png-size", type=int, help="PNG width/height in pixels (default: the template's canvas size)")
     p_render.set_defaults(func=_cmd_render)
+
+    p_qa = sub.add_parser(
+        "qa",
+        help="Audit a names-basis spec's render plan: overflow, motif overlap, stroke width, contrast, bleed margin",
+    )
+    p_qa.add_argument("path", help="Path to a spec.json with design_basis: names")
+    p_qa.add_argument("--json", action="store_true", help="Machine-readable output")
+    p_qa.set_defaults(func=_cmd_qa)
 
     return parser
 

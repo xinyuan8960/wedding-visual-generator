@@ -115,3 +115,21 @@ def test_render_png_reports_missing_renderer_clearly(monkeypatch, tmp_path, caps
     )
     assert rc == 1
     assert "brew install" in capsys.readouterr().err
+
+
+def test_qa_passes_cleanly_for_the_fixture_spec(capsys):
+    rc = main(["qa", str(FIXTURES / "valid_spec_names.json")])
+    assert rc == 0
+
+
+def test_qa_json_output_is_a_list_of_findings(capsys):
+    rc = main(["qa", str(FIXTURES / "valid_spec_names.json"), "--json"])
+    assert rc == 0
+    findings = json.loads(capsys.readouterr().out)
+    assert isinstance(findings, list)
+
+
+def test_qa_rejects_photo_basis(capsys):
+    rc = main(["qa", str(FIXTURES / "valid_spec_photo.json")])
+    assert rc == 1
+    assert "got 'photo'" in capsys.readouterr().err
