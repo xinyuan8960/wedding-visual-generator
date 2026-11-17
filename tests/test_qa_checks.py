@@ -44,12 +44,16 @@ def test_check_overflow_fails_when_a_glyph_exceeds_the_canvas():
 
 
 def test_check_motif_glyph_overlap_passes_when_disjoint():
-    plan = _base_plan(motif={"type": "ring", "bbox": [0.0, 420.0, 512.0, 512.0], "stroke_width": 10.0})
+    plan = _base_plan(
+        motif={"type": "rule-and-diamond", "bbox": [0.0, 420.0, 512.0, 512.0], "stroke_width": 10.0}
+    )
     assert check_motif_glyph_overlap(plan) == []
 
 
 def test_check_motif_glyph_overlap_fails_when_overlapping():
-    plan = _base_plan(motif={"type": "ring", "bbox": [100.0, 100.0, 300.0, 300.0], "stroke_width": 10.0})
+    plan = _base_plan(
+        motif={"type": "rule-and-diamond", "bbox": [100.0, 100.0, 300.0, 300.0], "stroke_width": 10.0}
+    )
     findings = check_motif_glyph_overlap(plan)
     assert len(findings) == 1
     assert findings[0]["level"] == "FAIL"
@@ -58,6 +62,46 @@ def test_check_motif_glyph_overlap_fails_when_overlapping():
 
 def test_check_motif_glyph_overlap_skips_when_no_motif():
     assert check_motif_glyph_overlap(_base_plan()) == []
+
+
+def test_ring_overlap_uses_center_distance_not_bbox_intersection():
+    # Regression: a ring's bounding box is a square circumscribing the circle, which will
+    # always intersect the bbox of anything inscribed near that circle -- a naive
+    # bbox-vs-bbox test would FAIL this every time even though nothing actually collides.
+    # The letters' bbox corner sits at distance 100*sqrt(2) =~ 141.4 from the center; the
+    # ring's inner edge (radius 160, stroke 20 -> inner radius 150) is comfortably past
+    # that, yet the ring's own *bounding box* (center +/- (radius + stroke/2) = 170)
+    # still overlaps the glyph bbox by plain rectangle intersection.
+    plan = _base_plan(
+        glyphs=[{"char": "A", "bbox": [156.0, 156.0, 356.0, 356.0]}],  # corner dist. ~= 141.4 from (256, 256)
+        motif={
+            "type": "ring",
+            "center": (256.0, 256.0),
+            "radius": 160.0,
+            "inner_radius": 150.0,
+            "stroke_width": 20.0,
+            "bbox": [86.0, 86.0, 426.0, 426.0],
+        },
+    )
+    assert check_motif_glyph_overlap(plan) == []
+
+
+def test_ring_overlap_fails_when_letters_reach_past_the_inner_radius():
+    plan = _base_plan(
+        glyphs=[{"char": "A", "bbox": [156.0, 156.0, 356.0, 356.0]}],  # corner dist. ~= 141.4 from (256, 256)
+        motif={
+            "type": "ring",
+            "center": (256.0, 256.0),
+            "radius": 140.0,
+            "inner_radius": 130.0,  # < 141.4: the letters now reach past the ring's inner edge
+            "stroke_width": 20.0,
+            "bbox": [106.0, 106.0, 406.0, 406.0],
+        },
+    )
+    findings = check_motif_glyph_overlap(plan)
+    assert len(findings) == 1
+    assert findings[0]["level"] == "FAIL"
+    assert findings[0]["code"] == "motif-overlap"
 
 
 def test_check_min_stroke_width_warns_for_a_hairline_on_a_large_canvas():
@@ -125,7 +169,7 @@ def test_audit_sorts_fail_before_warn_before_info():
     plan = _base_plan(
         background=None,  # INFO: no-background
         glyphs=[{"char": "A", "bbox": [-10.0, 0.0, 200.0, 300.0]}],  # FAIL: overflow
-        motif={"type": "ring", "bbox": [0, 0, 1, 1], "stroke_width": 5.0},  # WARN: thin-motif-stroke
+        motif={"type": "rule-and-diamond", "bbox": [0, 0, 1, 1], "stroke_width": 5.0},  # WARN: thin-motif-stroke
     )
     findings = audit(plan)
     levels = [f["level"] for f in findings]

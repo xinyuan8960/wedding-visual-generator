@@ -13,10 +13,16 @@ a WARN means "worth a second look," not "reject this spec."
 """
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from ..geometry import bbox_overlap, union_bbox
 from .color import contrast_ratio
+
+# Sub-pixel tolerance for the ring/overlap checks below: an exact circle-fit or box-fit
+# touches its constraint boundary by construction, and float arithmetic on that boundary
+# can land a few thousandths of a pixel on either side. That's not a visible defect.
+_OVERLAP_TOLERANCE_PX = 0.5
 
 # Below this, a stroke scaled down to REFERENCE_SMALL_SIZE_PX would render thinner than one
 # device pixel on an ordinary (non-retina) display and effectively disappear.
@@ -53,16 +59,38 @@ def check_overflow(plan: dict[str, Any]) -> list[dict[str, str]]:
 
 
 def check_motif_glyph_overlap(plan: dict[str, Any]) -> list[dict[str, str]]:
-    motif_bbox = plan["motif"]["bbox"]
-    if not motif_bbox:
+    motif = plan["motif"]
+    if not motif["bbox"]:
         return []
     glyph_box = union_bbox([g["bbox"] for g in plan["glyphs"]])
-    if bbox_overlap(motif_bbox, glyph_box):
+
+    if motif["type"] == "ring":
+        # A ring's own bounding box is a square circumscribing the circle, which will
+        # always intersect the bbox of anything inscribed near that circle -- a plain
+        # bbox-vs-bbox test would FAIL every circular-badge monogram, overlap or not. The
+        # geometrically meaningful question is whether the letters' farthest corner from
+        # the ring's center reaches past the ring's *inner* edge (radius - stroke/2).
+        cx, cy = motif["center"]
+        x0, y0, x1, y1 = glyph_box
+        half_diagonal = math.hypot(max(cx - x0, x1 - cx), max(cy - y0, y1 - cy))
+        if half_diagonal > motif["inner_radius"] + _OVERLAP_TOLERANCE_PX:
+            return [
+                _finding(
+                    "FAIL",
+                    "motif-overlap",
+                    f"The letters reach {half_diagonal:.1f}px from the ring's center, past its "
+                    f"inner edge at {motif['inner_radius']:.1f}px -- they will visibly collide "
+                    "with the ring's stroke.",
+                )
+            ]
+        return []
+
+    if bbox_overlap(motif["bbox"], glyph_box):
         return [
             _finding(
                 "FAIL",
                 "motif-overlap",
-                f"The {plan['motif']['type']} motif's bounding box overlaps the letters' bounding "
+                f"The {motif['type']} motif's bounding box overlaps the letters' bounding "
                 "box -- they will visibly collide.",
             )
         ]

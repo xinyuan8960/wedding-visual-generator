@@ -87,7 +87,19 @@ def build_render_plan(spec: dict[str, Any], template: dict[str, Any] | None = No
     char_a = initial_of(names["partner_a"]["latin"])
     char_b = initial_of(names["partner_b"]["latin"])
 
-    monogram = compose_monogram(char_a, char_b, arrangement, whitespace_ratio, canvas_size=canvas_size, font=font)
+    # For circular-badge, the ring is drawn at the same radius the letters were fitted to,
+    # but a stroke extends stroke_width/2 to *each* side of that radius -- fitting the letters
+    # to the mathematical radius leaves no room for the inward half of the stroke, so they'd
+    # overlap it. Inflate the whitespace fed to the glyph layout (circular-badge only) by
+    # that half-stroke, in canvas_size units, so letters fit inside radius - stroke_width/2
+    # while the ring itself still gets drawn at the original, visually-intended radius.
+    layout_whitespace_ratio = whitespace_ratio
+    if arrangement == "circular-badge":
+        layout_whitespace_ratio = whitespace_ratio + stroke_width / canvas_size
+
+    monogram = compose_monogram(
+        char_a, char_b, arrangement, layout_whitespace_ratio, canvas_size=canvas_size, font=font
+    )
     glyph_boxes = [g["bbox"] for g in monogram["glyphs"]]
 
     if arrangement == "circular-badge":
