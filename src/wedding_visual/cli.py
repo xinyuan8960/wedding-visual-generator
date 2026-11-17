@@ -4,6 +4,8 @@ import argparse
 import json
 import sys
 
+from .layout.glyphs import Font
+from .layout.monogram import compose_monogram, initial_of
 from .mapping import questionnaire_to_spec
 from .questionnaire import load_questionnaire
 from .spec import load_spec
@@ -52,6 +54,49 @@ def _cmd_questionnaire_to_spec(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_monogram_layout(args: argparse.Namespace) -> int:
+    try:
+        spec = load_spec(args.path)
+    except ValidationError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+
+    if spec["design_basis"] != "names":
+        print(
+            f"{args.path}: design_basis is {spec['design_basis']!r}, but monogram-layout "
+            "only handles 'names' (photo-silhouette layout is a separate, not-yet-built step)",
+            file=sys.stderr,
+        )
+        return 1
+
+    names = spec["names"]
+    try:
+        char_a = initial_of(names["partner_a"]["latin"])
+        char_b = initial_of(names["partner_b"]["latin"])
+    except KeyError:
+        print(f"{args.path}: names.partner_a/partner_b need a 'latin' name for monogram layout", file=sys.stderr)
+        return 1
+
+    layout = spec["layout"]
+    result = compose_monogram(
+        char_a,
+        char_b,
+        layout["monogram_arrangement"],
+        whitespace_ratio=layout["whitespace_ratio"],
+        canvas_size=args.canvas_size,
+        font=Font(),
+    )
+
+    text = json.dumps(result, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
+    if args.output:
+        with open(args.output, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        print(f"OK: wrote {args.output}")
+    else:
+        print(text, end="")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="wedding-visual")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -75,6 +120,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_map.add_argument("--seed", type=int, required=True, help="Seed to record in the output spec")
     p_map.add_argument("-o", "--output", help="Write the spec here instead of stdout")
     p_map.set_defaults(func=_cmd_questionnaire_to_spec)
+
+    p_mono = sub.add_parser(
+        "monogram-layout",
+        help="Compute initial placement (glyph outlines + bboxes) for a names-basis spec",
+    )
+    p_mono.add_argument("path", help="Path to a spec.json with design_basis: names")
+    p_mono.add_argument("--canvas-size", type=float, default=512.0)
+    p_mono.add_argument("-o", "--output", help="Write the layout here instead of stdout")
+    p_mono.set_defaults(func=_cmd_monogram_layout)
 
     return parser
 

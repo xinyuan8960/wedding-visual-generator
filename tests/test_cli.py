@@ -63,3 +63,17 @@ def test_questionnaire_to_spec_rejects_invalid_questionnaire(capsys):
     )
     assert rc == 1
     assert "failed schema validation" in capsys.readouterr().err
+
+
+def test_monogram_layout_for_names_basis(capsys):
+    rc = main(["monogram-layout", str(FIXTURES / "valid_spec_names.json")])
+    assert rc == 0
+    layout = json.loads(capsys.readouterr().out)
+    assert layout["arrangement"] == "interlocking"
+    assert {g["char"] for g in layout["glyphs"]} == {"A", "J"}
+
+
+def test_monogram_layout_rejects_photo_basis(capsys):
+    rc = main(["monogram-layout", str(FIXTURES / "valid_spec_photo.json")])
+    assert rc == 1
+    assert "only handles 'names'" in capsys.readouterr().err

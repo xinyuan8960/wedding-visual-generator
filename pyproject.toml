@@ -9,6 +9,7 @@ description = "Deterministic wedding logo generator: questionnaire -> spec.json 
 requires-python = ">=3.10"
 dependencies = [
     "jsonschema>=4.20",
+    "fonttools>=4.50",
 ]
 
 [project.optional-dependencies]
