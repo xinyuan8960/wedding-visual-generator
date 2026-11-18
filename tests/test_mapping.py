@@ -118,3 +118,17 @@ def test_generated_spec_round_trips_through_load_spec(tmp_path):
     out.write_text(json.dumps(spec))
     reloaded = load_spec(out)
     assert reloaded == spec
+
+
+def test_usage_targets_default_to_one_unified_mark():
+    from wedding_visual.mapping import questionnaire_to_spec
+
+    q = {
+        "partner_a_name": {"latin": "Ana"},
+        "partner_b_name": {"latin": "Ben"},
+        "date": "2027-01-01",
+        "design_basis": "names",
+    }
+    assert questionnaire_to_spec(q, seed=0)["usage_targets"] == ["invitation", "e-invite", "stage-backdrop"]
+    q["usage_targets"] = ["merchandise"]
+    assert questionnaire_to_spec(q, seed=0)["usage_targets"] == ["merchandise"]

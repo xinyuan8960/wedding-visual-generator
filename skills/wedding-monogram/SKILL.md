@@ -48,8 +48,12 @@ dump. Required answers first:
 
 Then optional, skip anything they don't care about:
 
-4. **Where it will be used** — any of `invitation`, `e-invite`, `stage-backdrop`,
-   `merchandise`. Print uses trigger a bleed-margin check.
+4. **What the logo will go on** — ask about *items*, not the venue (users answer "where"
+   with the wedding location): paper invitation (`invitation`), e-invite (`e-invite`),
+   stage backdrop (`stage-backdrop`), merchandise (`merchandise`). If they skip it, the
+   mapping defaults to one unified mark for invitation + e-invite + backdrop. Print uses
+   trigger a bleed-margin check. A venue answer goes in `venues`; it doesn't affect the
+   current template.
 5. **Style feel**, four 0–1 sliders. Ask in plain words and convert, e.g. "more minimal
    or more ornate?" → 0.2 / 0.5 / 0.8: `minimal_to_ornate`, `modern_to_classic`,
    `eastern_to_western`, `handwritten_to_print`.

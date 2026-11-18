@@ -38,6 +38,11 @@ DEFAULT_SLIDERS: dict[str, float] = {
 # that holds up as a wedding mark. v1 stays selectable via layout.template_id. v2 has a
 # fixed composition, so the arrangement/whitespace fields below only affect v1. Once
 # templates/ holds several candidates per basis, this becomes a scoring function.
+# A wedding logo is usually one unified mark across the paper invitation, the e-invite
+# and the stage backdrop, so that is the default when the questionnaire doesn't say.
+# Including the print targets means the bleed-margin check runs by default.
+DEFAULT_USAGE_TARGETS = ("invitation", "e-invite", "stage-backdrop")
+
 _TEMPLATE_ID_BY_BASIS = {
     "names": "monogram-v2",
     "photo": "silhouette-badge-v1",
@@ -136,8 +141,7 @@ def questionnaire_to_spec(questionnaire: dict[str, Any], seed: int) -> dict[str,
     else:
         spec["photo_silhouette"] = _photo_silhouette_params(questionnaire, sliders)
 
-    if questionnaire.get("usage_targets"):
-        spec["usage_targets"] = list(questionnaire["usage_targets"])
+    spec["usage_targets"] = list(questionnaire.get("usage_targets") or DEFAULT_USAGE_TARGETS)
     if questionnaire.get("preferred_elements"):
         spec["preferred_elements"] = list(questionnaire["preferred_elements"])
     if questionnaire.get("avoid_elements"):
