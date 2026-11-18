@@ -82,6 +82,7 @@ def olive_sprig(
     stroke_width: float,
     seed: int,
     blocked: Callable[[float, float], bool],
+    olives: bool = False,
 ) -> dict:
     """Sprig along the circle (cx, cy, radius) from start_deg, growing by +span_deg.
 
@@ -126,8 +127,9 @@ def olive_sprig(
     # Terminal leaf continuing the stem.
     _, tip_heading = on_stem(1.0)
     place(_leaf(end, tip_heading, leaf_length * 0.8))
-    # Two olives hanging on the outer side near the middle of the stem.
-    for t in (0.42, 0.62):
+    # Optional fruit. Off by default: free-floating ovals beside the stem read as odd
+    # circles rather than olives in user review.
+    for t in (0.42, 0.62) if olives else ():
         point, heading = on_stem(t + rng.uniform(-0.03, 0.03))
         outward = heading - direction * math.pi / 2
         offset = OLIVE_RADII[0] * leaf_length * 2.0
