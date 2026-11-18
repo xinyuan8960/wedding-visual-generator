@@ -7,7 +7,7 @@
   "ink_color": "#222222",
   "fonts": {
     "initials": { "path": "fonts/CormorantGaramond/CormorantGaramond-VariableFont_wght.ttf", "variations": { "wght": 500 } },
-    "ampersand": { "path": "fonts/PinyonScript/PinyonScript-Regular.ttf" },
+    "ampersand": { "path": "fonts/MonsieurLaDoulaise/MonsieurLaDoulaise-Regular.ttf" },
     "caption": { "path": "fonts/Jost/Jost-VariableFont_wght.ttf", "variations": { "wght": 300 } }
   },
   "block": { "size": 0.62, "top": 0.06 },

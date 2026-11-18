@@ -100,13 +100,16 @@ def build_diagonal_plan(spec: dict[str, Any], template: dict[str, Any]) -> dict[
             )
         )
 
+    glyphs = [p.to_dict() for p in placements]
+    glyphs[1]["role"] = "connector"  # the ampersand, between the two initials
+
     return {
         "canvas_size": canvas,
         "ink": template["ink_color"],
         "background": None if template.get("background") in (None, "none") else template["background"],
         "arrangement": template["layout"],
         "title": f"Monogram for {latin_a} & {latin_b}",
-        "glyphs": [p.to_dict() for p in placements],
+        "glyphs": glyphs,
         "captions": captions,
         "motif": motif,
         "usage_targets": spec.get("usage_targets", []),

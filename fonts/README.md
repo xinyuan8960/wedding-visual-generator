@@ -17,13 +17,17 @@ Only open-license fonts (OFL etc.) live here, each with its source and license n
 - Copyright 2015 the Cormorant Project Authors (github.com/CatharsisFonts/Cormorant).
 - Instanced at wght=500 for `monogram-v2`'s initials.
 
-## Pinyon Script
+## Monsieur La Doulaise
 
-- Source: [google/fonts](https://github.com/google/fonts/tree/main/ofl/pinyonscript),
-  file `PinyonScript-Regular.ttf`, fetched 2026-11-18.
-- License: SIL Open Font License 1.1 — see `PinyonScript/OFL.txt`.
-- Copyright 2024 The Pinyon Project Authors (https://github.com/SorkinType/Pinyon).
-- Only its `&` glyph is used, for `monogram-v2`'s connecting ampersand.
+- Source: [google/fonts](https://github.com/google/fonts/tree/main/ofl/monsieurladoulaise),
+  file `MonsieurLaDoulaise-Regular.ttf`, fetched 2026-11-18.
+- License: SIL Open Font License 1.1 — see `MonsieurLaDoulaise/OFL.txt`.
+- Copyright (c) 2011 Alejandro Paul (sudtipos@sudtipos.com).
+- Only its `&` glyph is used, for `monogram-v2`'s connecting ampersand. Chosen over 19
+  other OFL script ampersands: it passes the blade-shape check (`qa/shape.py`), and, of
+  the four finalists rendered in the actual composition, its looping, treble-clef-like
+  hairline best suited a wedding, let the initials lead, and matched the template's
+  hairline arc.
 
 ## Jost
 

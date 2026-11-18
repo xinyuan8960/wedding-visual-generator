@@ -21,6 +21,7 @@ from fontTools.svgLib.path import parse_path
 
 from ..geometry import bbox_overlap, union_bbox
 from .color import contrast_ratio
+from .shape import measure_svg_path
 
 # Sub-pixel tolerance for the ring/overlap checks below: an exact circle-fit or box-fit
 # touches its constraint boundary by construction, and float arithmetic on that boundary
@@ -37,6 +38,8 @@ MIN_CONTRAST_PREFERRED = 4.5  # WCAG AA, normal text -- aim higher, don't requir
 
 PRINT_USAGE_TARGETS = {"invitation", "stage-backdrop", "merchandise"}
 MIN_BLEED_MARGIN_RATIO = 0.02  # 2% of canvas size on every side, for a target meant to be printed
+
+MAX_CONNECTOR_STRAIGHT_RATIO = 0.55
 
 
 def _finding(level: str, code: str, message: str) -> dict[str, str]:
@@ -204,12 +207,41 @@ def check_bleed_margin(plan: dict[str, Any]) -> list[dict[str, str]]:
     return []
 
 
+def check_connector_shape(plan: dict[str, Any]) -> list[dict[str, str]]:
+    """A wedding mark's connecting flourish should curl, not cut.
+
+    Taste encoded as a measurable rule: a connector ('&') dominated by one long straight
+    diagonal stroke reads as a blade or sword at display size -- wrong for a wedding. See
+    qa/shape.py for the metric; the threshold sits between Pinyon Script's '&' (0.64,
+    rejected for exactly this) and the rest of a 20-font survey of OFL script ampersands
+    (all <= 0.55).
+    """
+    findings = []
+    for g in plan["glyphs"]:
+        if g.get("role") != "connector":
+            continue
+        metrics = measure_svg_path(g["d"])
+        if metrics.straight_ratio > MAX_CONNECTOR_STRAIGHT_RATIO:
+            findings.append(
+                _finding(
+                    "WARN",
+                    "blade-like-connector",
+                    f"The {g['char']!r} connector is dominated by a straight diagonal stroke "
+                    f"({metrics.straight_ratio:.2f} of its height, max "
+                    f"{MAX_CONNECTOR_STRAIGHT_RATIO:g}) -- it reads as a blade rather than a "
+                    "flourish. Choose a script font whose ampersand curls.",
+                )
+            )
+    return findings
+
+
 ALL_CHECKS = (
     check_overflow,
     check_motif_glyph_overlap,
     check_min_stroke_width,
     check_contrast,
     check_bleed_margin,
+    check_connector_shape,
 )
 
 
