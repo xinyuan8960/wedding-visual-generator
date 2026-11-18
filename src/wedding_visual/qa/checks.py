@@ -21,6 +21,8 @@ from fontTools.svgLib.path import parse_path
 
 from ..geometry import bbox_overlap, union_bbox
 from .color import contrast_ratio
+from ..ink import area, flatten_svg_path, overlap_area, rasterize
+from ..layout.diagonal import CONTACT_MIN
 from .shape import measure_svg_path
 
 # Sub-pixel tolerance for the ring/overlap checks below: an exact circle-fit or box-fit
@@ -235,6 +237,39 @@ def check_connector_shape(plan: dict[str, Any]) -> list[dict[str, str]]:
     return findings
 
 
+_CONTACT_RASTER_STEP_PX = 1.0
+
+
+def check_connector_contact(plan: dict[str, Any]) -> list[dict[str, str]]:
+    """The connector must interlock with the initials, not float between them.
+
+    Re-measured from the rendered path strings, independently of the layout's own search:
+    the ink the connector shares with each other glyph, as a fraction of its own ink.
+    """
+    connectors = [g for g in plan["glyphs"] if g.get("role") == "connector"]
+    findings = []
+    for c in connectors:
+        rows_c = rasterize(flatten_svg_path(c["d"]), _CONTACT_RASTER_STEP_PX)
+        ink = area(rows_c, _CONTACT_RASTER_STEP_PX)
+        for g in plan["glyphs"]:
+            if g is c:
+                continue
+            rows_g = rasterize(flatten_svg_path(g["d"]), _CONTACT_RASTER_STEP_PX)
+            contact = overlap_area(rows_g, rows_c, _CONTACT_RASTER_STEP_PX) / ink
+            # Small slack: the layout searched on a coarser raster than this re-check.
+            if contact < CONTACT_MIN * 0.8:
+                findings.append(
+                    _finding(
+                        "WARN",
+                        "detached-connector",
+                        f"The {c['char']!r} barely touches {g['char']!r} ({contact:.1%} of its ink, "
+                        f"want >= {CONTACT_MIN:.0%}) -- the mark reads as separate pieces "
+                        "instead of one interlocked monogram.",
+                    )
+                )
+    return findings
+
+
 ALL_CHECKS = (
     check_overflow,
     check_motif_glyph_overlap,
@@ -242,6 +277,7 @@ ALL_CHECKS = (
     check_contrast,
     check_bleed_margin,
     check_connector_shape,
+    check_connector_contact,
 )
 
 

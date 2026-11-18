@@ -17,56 +17,14 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from fontTools.pens.basePen import BasePen
-from fontTools.svgLib.path import parse_path
+from ..ink import FlattenPen as _FlattenPen
+from ..ink import flatten_svg_path
 
-_SAMPLES_PER_CURVE = 16
 STRAIGHT_TOLERANCE = 0.012  # max deviation from the chord, as a fraction of height
 # Only diagonal runs count as blade-like. A long *horizontal* straight run is usually a
 # calligraphic exit swash (graceful); a long straight *diagonal* reads as a blade.
 DIAGONAL_MIN_DEG = 20.0
 DIAGONAL_MAX_DEG = 70.0
-
-
-class _FlattenPen(BasePen):
-    def __init__(self) -> None:
-        super().__init__(glyphSet=None)
-        self.contours: list[list[tuple[float, float]]] = []
-        self._current: list[tuple[float, float]] = []
-
-    def _moveTo(self, pt):
-        self._current = [pt]
-
-    def _lineTo(self, pt):
-        self._current.append(pt)
-
-    def _curveToOne(self, p1, p2, p3):
-        p0 = self._current[-1]
-        for i in range(1, _SAMPLES_PER_CURVE + 1):
-            t = i / _SAMPLES_PER_CURVE
-            u = 1 - t
-            self._current.append(
-                (
-                    u**3 * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t**3 * p3[0],
-                    u**3 * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t**3 * p3[1],
-                )
-            )
-
-    def _qCurveToOne(self, p1, p2):
-        p0 = self._current[-1]
-        for i in range(1, _SAMPLES_PER_CURVE + 1):
-            t = i / _SAMPLES_PER_CURVE
-            u = 1 - t
-            self._current.append(
-                (u * u * p0[0] + 2 * u * t * p1[0] + t * t * p2[0], u * u * p0[1] + 2 * u * t * p1[1] + t * t * p2[1])
-            )
-
-    def _closePath(self):
-        if len(self._current) > 2:
-            self.contours.append(self._current)
-        self._current = []
-
-    _endPath = _closePath
 
 
 @dataclass(frozen=True)
@@ -104,7 +62,6 @@ def _longest_straight_diagonal_run(points: list[tuple[float, float]], tol: float
     return best
 
 
-
 def _dedupe(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
     out = [points[0]]
     for p in points[1:]:
@@ -129,6 +86,4 @@ def measure_glyph(glyph_set, glyph_name: str) -> ShapeMetrics:
 
 
 def measure_svg_path(d: str) -> ShapeMetrics:
-    pen = _FlattenPen()
-    parse_path(d, pen)
-    return measure_contours(pen.contours)
+    return measure_contours(flatten_svg_path(d))
