@@ -33,11 +33,13 @@ DEFAULT_SLIDERS: dict[str, float] = {
     "handwritten_to_print": 0.5,
 }
 
-# One template per design_basis for now (only template we build in phase 4). Once
-# templates/ holds more than one candidate per basis, this becomes a lookup/scoring
-# function over a template catalog instead of a constant.
+# One default template per design_basis. monogram-v2 (diagonal initials interlocked
+# with a script '&') replaced v1 as the default: v1 was a geometry proof, v2 is the one
+# that holds up as a wedding mark. v1 stays selectable via layout.template_id. v2 has a
+# fixed composition, so the arrangement/whitespace fields below only affect v1. Once
+# templates/ holds several candidates per basis, this becomes a scoring function.
 _TEMPLATE_ID_BY_BASIS = {
-    "names": "monogram-v1",
+    "names": "monogram-v2",
     "photo": "silhouette-badge-v1",
 }
 

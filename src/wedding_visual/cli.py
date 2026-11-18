@@ -221,7 +221,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_render = sub.add_parser(
         "render",
-        help="Render a names-basis spec through the monogram-v1 template to SVG (and optionally PNG/PDF)",
+        help="Render a names-basis spec through its layout.template_id template to SVG (and optionally PNG/PDF)",
     )
     p_render.add_argument("path", help="Path to a spec.json with design_basis: names")
     p_render.add_argument("-o", "--output", help="Write the SVG here (also stdout if no flag is given)")

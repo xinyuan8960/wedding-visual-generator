@@ -7,7 +7,7 @@ def test_eval_set_has_ten_cases():
 
 
 def test_eval_set_covers_all_four_arrangements():
-    results = run_eval_set()
+    results = run_eval_set(template_id="monogram-v1")  # arrangements are a v1 concept
     arrangements = {r["arrangement"] for r in results}
     assert arrangements == {"side-by-side", "stacked", "interlocking", "circular-badge"}
 
