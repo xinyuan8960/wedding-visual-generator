@@ -12,6 +12,12 @@ from a reference image the user supplied (kept in gitignored `private/`); only l
 conventions and proportions were taken from it, expressed as the parameters in this file
 — no glyph or ornament geometry was traced. Drawing logic: `render/plan_diagonal.py`.
 
+The `&` is placed by a search that makes it interlock with both initials
+(`layout/diagonal.py`). With `layout.ornament: "olive-sprig"` (the questionnaire default) a
+procedural line-art olive branch grows from the arc's open end into the empty lower-left
+(`render/sprig.py`): parametric leaves, no traced shapes; `spec.seed` jitters the leaves,
+and any leaf that would touch a letter is dropped.
+
 ## monogram-v1
 
 The first template, for `design_basis: "names"`. Drawing logic lives in

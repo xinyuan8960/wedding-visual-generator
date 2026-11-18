@@ -49,6 +49,11 @@
       "type": "array",
       "items": { "type": "string" },
       "description": "Used only to estimate style_sliders; never traced or copied geometrically."
+    },
+    "ornament": {
+      "type": "string",
+      "enum": ["none", "olive-sprig"],
+      "description": "Whether to add a line-art olive sprig to the mark. Unanswered defaults to olive-sprig."
     }
   },
   "if": {

@@ -15,10 +15,11 @@
     "center": [0.56, 0.52],
     "radius": 0.47,
     "start_deg": -95,
-    "end_deg": 155,
+    "end_deg": 118,
     "hairline_ratio": 0.0026,
     "clearance_ratio": 0.012
   },
+  "sprig": { "span_deg": 58, "leaf_pairs": 3, "leaf_length_ratio": 0.3, "stroke_ratio": 0.0028 },
   "names": { "cap_height": 0.034, "tracking_em": 0.28, "gap_below_block": 0.11, "max_width": 0.86 },
   "date": { "cap_height": 0.024, "tracking_em": 0.22, "gap_below_names": 0.07, "format": "MM.DD.YYYY" }
 }

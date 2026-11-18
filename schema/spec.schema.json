@@ -48,7 +48,12 @@
           "enum": ["interlocking", "stacked", "circular-badge", "side-by-side"]
         },
         "stroke_width_ratio": { "type": "number", "exclusiveMinimum": 0 },
-        "whitespace_ratio": { "type": "number", "minimum": 0, "maximum": 1 }
+        "whitespace_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ornament": {
+          "type": "string",
+          "enum": ["none", "olive-sprig"],
+          "description": "Optional line-art ornament (monogram-v2). olive-sprig: a procedural olive branch grown from the arc's open end; spec.seed varies its leaves. Absent means none."
+        }
       }
     },
     "photo_silhouette": {

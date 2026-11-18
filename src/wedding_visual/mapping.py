@@ -43,6 +43,8 @@ DEFAULT_SLIDERS: dict[str, float] = {
 # Including the print targets means the bleed-margin check runs by default.
 DEFAULT_USAGE_TARGETS = ("invitation", "e-invite", "stage-backdrop")
 
+DEFAULT_ORNAMENT = "olive-sprig"
+
 _TEMPLATE_ID_BY_BASIS = {
     "names": "monogram-v2",
     "photo": "silhouette-badge-v1",
@@ -132,6 +134,8 @@ def questionnaire_to_spec(questionnaire: dict[str, Any], seed: int) -> dict[str,
         "style": {k: round(v, 4) for k, v in sliders.items()},
         "layout": {
             "template_id": _TEMPLATE_ID_BY_BASIS[design_basis],
+            # The bare mark read as too plain in user review; the sprig is on unless declined.
+            "ornament": questionnaire.get("ornament", DEFAULT_ORNAMENT),
             **_layout_params(sliders),
         },
     }

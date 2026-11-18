@@ -54,15 +54,18 @@ Then optional, skip anything they don't care about:
    mapping defaults to one unified mark for invitation + e-invite + backdrop. Print uses
    trigger a bleed-margin check. A venue answer goes in `venues`; it doesn't affect the
    current template.
-5. **Style feel**, four 0–1 sliders. Ask in plain words and convert, e.g. "more minimal
+5. **Olive sprig?** A line-art olive branch growing from the open end of the arc, in the
+   empty lower-left. On by default (the bare mark reads as too plain); `"ornament": "none"`
+   to leave it out. The seed varies its leaves: offer seed 1, 2, ... as sibling variants.
+6. **Style feel**, four 0–1 sliders. Ask in plain words and convert, e.g. "more minimal
    or more ornate?" → 0.2 / 0.5 / 0.8: `minimal_to_ornate`, `modern_to_classic`,
    `eastern_to_western`, `handwritten_to_print`.
-6. **Elements they love / want to avoid** (free text lists).
+7. **Elements they love / want to avoid** (free text lists).
 
 Be honest about what the answers change today: the default template (`monogram-v2`,
 diagonal initials interlocked with a script `&`, an open hairline arc, names and date in
-tracked capitals) has a fixed composition. Names, initials and date drive it; the style
-sliders and element lists are recorded in the spec for future templates but don't alter
+tracked capitals) has a fixed composition. Names, initials, date and the olive
+sprig (on/off, seed variants) drive it; the style sliders and element lists are recorded in the spec for future templates but don't alter
 v2's look yet. Say this before asking optional questions so the user can skip them.
 
 Write the answers to `private/<slug>/questionnaire.json` (slug = both first names,
@@ -114,6 +117,6 @@ opens in any browser.
 ## 4. Revise
 
 Change the questionnaire (names, date, usage) and re-run step 2. Also available:
-`layout.template_id: "monogram-v1"` in the spec for the older geometric template. v2 has
-no seed-driven variants yet — re-running with another seed gives the same mark; don't
-promise variants.
+`layout.template_id: "monogram-v1"` in the spec for the older geometric template. The seed
+(`--seed N`) only varies the olive sprig's leaves; with `"ornament": "none"` every seed
+gives the same mark.

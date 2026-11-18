@@ -16,7 +16,8 @@ from ..layout.glyphs import Font
 from ..layout.monogram import initial_of
 from ..layout.text import set_line
 from ..templates import resolve_repo_path
-from .arc import open_arc
+from .arc import _blocked, open_arc
+from .sprig import olive_sprig
 
 
 def _font(spec: dict[str, Any]) -> Font:
@@ -75,6 +76,26 @@ def build_diagonal_plan(spec: dict[str, Any], template: dict[str, Any]) -> dict[
         clearance=arc_params["clearance_ratio"] * canvas,
     )
 
+    ornaments = []
+    if spec["layout"].get("ornament", "none") == "olive-sprig":
+        sp = template["sprig"]
+        boxes = [pl.bbox() for pl in placements]
+        pad = arc_params["clearance_ratio"] * canvas
+        ornaments.append(
+            olive_sprig(
+                cx=block_x + arc_params["center"][0] * block_size,
+                cy=block_y + arc_params["center"][1] * block_size,
+                radius=arc_params["radius"] * block_size,
+                start_deg=arc_params["end_deg"],  # grows out of the arc's open end
+                span_deg=sp["span_deg"],
+                leaf_pairs=sp["leaf_pairs"],
+                leaf_length=sp["leaf_length_ratio"] * arc_params["radius"] * block_size,
+                stroke_width=sp["stroke_ratio"] * canvas,
+                seed=spec["seed"],
+                blocked=lambda x, y: _blocked(x, y, placements, boxes, pad),
+            )
+        )
+
     name_params = template["names"]
     names_line = set_line(
         caption_font,
@@ -112,5 +133,6 @@ def build_diagonal_plan(spec: dict[str, Any], template: dict[str, Any]) -> dict[
         "glyphs": glyphs,
         "captions": captions,
         "motif": motif,
+        "ornaments": ornaments,
         "usage_targets": spec.get("usage_targets", []),
     }

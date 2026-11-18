@@ -66,6 +66,11 @@ def render_monogram_svg(spec: dict[str, Any], template: dict[str, Any] | None = 
     shapes = plan["glyphs"] + plan.get("captions", [])
     glyph_paths = "\n  ".join(f'<path d="{g["d"]}" fill="{ink}"/>' for g in shapes)
     motif_svg = _motif_svg(plan["motif"], ink)
+    for ornament in plan.get("ornaments", []):
+        motif_svg += (
+            f'\n  <path d="{ornament["d"]}" fill="none" stroke="{ink}" '
+            f'stroke-width="{ornament["stroke_width"]:g}" stroke-linecap="round" stroke-linejoin="round"/>'
+        )
 
     background = ""
     if plan["background"]:

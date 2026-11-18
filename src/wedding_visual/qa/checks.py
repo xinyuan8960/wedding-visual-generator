@@ -52,6 +52,7 @@ def _all_drawn_boxes(plan: dict[str, Any]) -> list[list[float]]:
     boxes = [g["bbox"] for g in plan["glyphs"]] + [c["bbox"] for c in plan.get("captions", [])]
     if plan["motif"]["bbox"]:
         boxes.append(plan["motif"]["bbox"])
+    boxes += [o["bbox"] for o in plan.get("ornaments", [])]
     return boxes
 
 
@@ -130,6 +131,25 @@ def check_motif_glyph_overlap(plan: dict[str, Any]) -> list[dict[str, str]]:
                 "box -- they will visibly collide.",
             )
         ]
+    return []
+
+
+def check_ornament_glyph_overlap(plan: dict[str, Any]) -> list[dict[str, str]]:
+    """No ornament line may run through a letter -- re-checked from the rendered paths,
+    independently of the sprig builder's own leaf-dropping."""
+    for ornament in plan.get("ornaments", []):
+        for contour in flatten_svg_path(ornament["d"]):
+            for x, y in contour[::2]:
+                for g in plan["glyphs"]:
+                    gx0, gy0, gx1, gy1 = g["bbox"]
+                    if gx0 <= x <= gx1 and gy0 <= y <= gy1 and _point_in_path(g["d"], x, y):
+                        return [
+                            _finding(
+                                "FAIL",
+                                "ornament-overlap",
+                                f"The {ornament['type']} runs through the {g['char']!r} glyph at ({x:.1f}, {y:.1f}).",
+                            )
+                        ]
     return []
 
 
@@ -273,6 +293,7 @@ def check_connector_contact(plan: dict[str, Any]) -> list[dict[str, str]]:
 ALL_CHECKS = (
     check_overflow,
     check_motif_glyph_overlap,
+    check_ornament_glyph_overlap,
     check_min_stroke_width,
     check_contrast,
     check_bleed_margin,
