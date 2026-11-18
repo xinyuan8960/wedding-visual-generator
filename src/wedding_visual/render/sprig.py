@@ -16,8 +16,10 @@ from collections.abc import Callable
 
 Point = tuple[float, float]
 
-LEAF_HALF_WIDTH = 0.2  # of leaf length -- narrow, olive-like (not a round laurel leaf)
-LEAF_SPREAD_DEG = 38.0  # angle between a leaf and the stem's direction of growth
+LEAF_HALF_WIDTH = 0.24  # of leaf length -- narrow, olive-like (not a round laurel leaf)
+LEAF_SPREAD_DEG = (46.0, 28.0)  # leaf-to-stem angle at the base, at the tip: leaves close up toward the tip
+PETIOLE = 0.12  # short leaf stalk, as a fraction of leaf length
+LEAF_BEND = 0.07  # sideways curve of each blade, as a fraction of its length
 ANGLE_JITTER_DEG = 7.0
 LENGTH_JITTER = 0.12
 OLIVE_RADII = (0.16, 0.11)  # of leaf length: a small oval fruit
@@ -36,21 +38,28 @@ def _cubic(p0, p1, p2, p3, t):
     )
 
 
-def _leaf(base: Point, angle: float, length: float) -> tuple[str, list[Point]]:
-    """Path 'd' and sample points of one leaf whose base is at `base`, pointing `angle`."""
+def _leaf(stem_point: Point, angle: float, length: float, bend: float) -> tuple[str, list[Point]]:
+    """One leaf on a short stalk from `stem_point`, pointing `angle`, its blade curving
+    sideways by `bend` (fraction of length, signed) -- real leaves are rarely straight."""
     ca, sa = math.cos(angle), math.sin(angle)
 
     def to_canvas(x: float, y: float) -> Point:
-        return base[0] + x * ca - y * sa, base[1] + x * sa + y * ca
+        return stem_point[0] + x * ca - y * sa, stem_point[1] + x * sa + y * ca
 
+    stalk = PETIOLE * length
     w = LEAF_HALF_WIDTH * length * 1.33  # control offset giving ~LEAF_HALF_WIDTH max width
-    tip = to_canvas(length, 0)
-    up = (to_canvas(0.28 * length, w), to_canvas(0.72 * length, 0.7 * w))
-    down = (to_canvas(0.72 * length, -0.7 * w), to_canvas(0.28 * length, -w))
-    rib_end = to_canvas(0.72 * length, 0)
+    b = bend * length
+    base = to_canvas(stalk, 0)
+    tip = to_canvas(stalk + length, b)
+    # Asymmetric sides: the outer edge of the curve is fuller than the inner one.
+    up = (to_canvas(stalk + 0.25 * length, w + 0.3 * b), to_canvas(stalk + 0.7 * length, 0.75 * w + b))
+    down = (to_canvas(stalk + 0.7 * length, -0.6 * w + b), to_canvas(stalk + 0.25 * length, -0.9 * w + 0.3 * b))
+    rib_ctrl = to_canvas(stalk + 0.4 * length, 0.45 * b)
+    rib_end = to_canvas(stalk + 0.78 * length, 0.75 * b)
     d = (
-        f"M{_fmt(base)} C{_fmt(up[0])} {_fmt(up[1])} {_fmt(tip)} "
-        f"C{_fmt(down[0])} {_fmt(down[1])} {_fmt(base)} Z M{_fmt(base)} L{_fmt(rib_end)}"
+        f"M{_fmt(stem_point)} L{_fmt(base)} "
+        f"C{_fmt(up[0])} {_fmt(up[1])} {_fmt(tip)} C{_fmt(down[0])} {_fmt(down[1])} {_fmt(base)} Z "
+        f"M{_fmt(base)} Q{_fmt(rib_ctrl)} {_fmt(rib_end)}"
     )
     samples = [_cubic(base, *up, tip, i / _SAMPLES) for i in range(_SAMPLES + 1)]
     samples += [_cubic(tip, *down, base, i / _SAMPLES) for i in range(_SAMPLES + 1)]
@@ -115,18 +124,21 @@ def olive_sprig(
         parts.append(d)
         all_samples.extend(samples)
 
-    # Leaf pairs from the base toward the tip, shrinking slightly as the sprig tapers.
-    for i in range(leaf_pairs):
-        t = 0.18 + 0.68 * i / max(1, leaf_pairs - 1)
+    # Alternate leaves (not opposite pairs, which look stiff) from the base toward the
+    # tip, shrinking and closing up toward the stem as the sprig tapers.
+    n = 2 * leaf_pairs
+    for i in range(n):
+        t = 0.1 + 0.8 * i / (n - 1)
         point, heading = on_stem(t)
-        taper = 1.0 - 0.25 * t
-        for side in (-1, 1):
-            spread = math.radians(LEAF_SPREAD_DEG + rng.uniform(-ANGLE_JITTER_DEG, ANGLE_JITTER_DEG))
-            length = leaf_length * taper * (1 + rng.uniform(-LENGTH_JITTER, LENGTH_JITTER))
-            place(_leaf(point, heading + side * spread, length))
+        side = 1 if i % 2 else -1
+        spread_deg = LEAF_SPREAD_DEG[0] + (LEAF_SPREAD_DEG[1] - LEAF_SPREAD_DEG[0]) * t
+        spread = math.radians(spread_deg + rng.uniform(-ANGLE_JITTER_DEG, ANGLE_JITTER_DEG))
+        length = leaf_length * (1.0 - 0.4 * t) * (1 + rng.uniform(-LENGTH_JITTER, LENGTH_JITTER))
+        # Each blade curves back toward the direction of growth.
+        place(_leaf(point, heading + side * spread, length, -side * LEAF_BEND))
     # Terminal leaf continuing the stem.
     _, tip_heading = on_stem(1.0)
-    place(_leaf(end, tip_heading, leaf_length * 0.8))
+    place(_leaf(end, tip_heading, leaf_length * 0.55, LEAF_BEND))
     # Optional fruit. Off by default: free-floating ovals beside the stem read as odd
     # circles rather than olives in user review.
     for t in (0.42, 0.62) if olives else ():
