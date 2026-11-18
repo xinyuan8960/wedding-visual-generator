@@ -1,10 +1,10 @@
 """Deterministic glyph outline extraction via fontTools.
 
 Reading a glyph's outline out of a font file is already deterministic (same bytes in,
-same contours out) -- this module just exposes that in the shape the monogram layout
-needs: a glyph's bounding box in font units, and its outline as an SVG path 'd' string
-after an arbitrary affine transform (so a caller can place it directly into canvas
-space without a second drawing pass).
+same contours out) -- this module just exposes that in the shape the layouts need: a
+glyph's bounding box and advance width in font units, its outline as an SVG path 'd'
+string after an arbitrary affine transform (so a caller can place it directly into canvas
+space without a second drawing pass), and a point-in-outline test.
 
 Font units are y-up with the baseline at y=0, which is the opposite convention from
 SVG (y-down, origin top-left) -- callers are responsible for building a transform that
@@ -16,9 +16,11 @@ from pathlib import Path
 
 from fontTools.misc.transform import Transform
 from fontTools.pens.boundsPen import BoundsPen
+from fontTools.pens.pointInsidePen import PointInsidePen
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.ttLib import TTFont
+from fontTools.varLib.instancer import instantiateVariableFont
 
 from ..repo_paths import repo_root
 
@@ -38,19 +40,20 @@ def default_font_path() -> Path:
 class Font:
     """A loaded font, read once and reused for every glyph lookup.
 
-    Note: this reads the font's default outline directly from the 'glyf'/'CFF ' table.
-    For a variable font that means the default named instance (whatever weight/width the
-    font's designer set as the non-variable fallback) -- we do not instantiate other
-    points on the design space. Fine for monogram initials, which don't need weight
-    variation yet.
+    `variations` pins a variable font to one point on its design space (e.g.
+    {"wght": 300}) via fontTools' instancer, which is deterministic. Without it, a
+    variable font is read at its default instance.
     """
 
-    def __init__(self, path: str | Path | None = None):
+    def __init__(self, path: str | Path | None = None, variations: dict[str, float] | None = None):
         self.path = Path(path) if path is not None else default_font_path()
-        self._ttfont = TTFont(str(self.path))
-        self._glyph_set = self._ttfont.getGlyphSet()
-        self._cmap = self._ttfont.getBestCmap()
-        self.units_per_em: int = self._ttfont["head"].unitsPerEm
+        ttfont = TTFont(str(self.path))
+        if variations:
+            ttfont = instantiateVariableFont(ttfont, variations)
+        self._ttfont = ttfont
+        self._glyph_set = ttfont.getGlyphSet()
+        self._cmap = ttfont.getBestCmap()
+        self.units_per_em: int = ttfont["head"].unitsPerEm
 
     def _glyph_name(self, char: str) -> str:
         try:
@@ -64,6 +67,18 @@ class Font:
         if pen.bounds is None:
             raise GlyphNotFoundError(f"Glyph for {char!r} has no outline (e.g. a space)")
         return pen.bounds
+
+    def advance(self, char: str) -> float:
+        return self._ttfont["hmtx"][self._glyph_name(char)][0]
+
+    def cap_height(self) -> float:
+        return self.bounds("H")[3]
+
+    def contains(self, char: str, x: float, y: float) -> bool:
+        """Whether font-space point (x, y) falls inside the glyph's filled outline."""
+        pen = PointInsidePen(self._glyph_set, (x, y))
+        self._glyph_set[self._glyph_name(char)].draw(pen)
+        return pen.getResult()
 
     def path_d(self, char: str, transform: Transform) -> str:
         """SVG path 'd' data for this glyph's outline after applying `transform`."""

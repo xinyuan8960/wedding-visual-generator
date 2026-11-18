@@ -26,7 +26,10 @@ def default_cases_dir() -> Path:
     return repo_root(marker_dir="eval") / "eval" / "cases"
 
 
-def run_eval_set(cases_dir: str | Path | None = None, seed: int = 0) -> list[dict[str, Any]]:
+def run_eval_set(
+    cases_dir: str | Path | None = None, seed: int = 0, template_id: str | None = None
+) -> list[dict[str, Any]]:
+    """`template_id` overrides the one questionnaire_to_spec picks, to evaluate any template."""
     cases_dir = Path(cases_dir) if cases_dir else default_cases_dir()
     results = []
     for path in sorted(cases_dir.glob("*.json")):
@@ -34,6 +37,8 @@ def run_eval_set(cases_dir: str | Path | None = None, seed: int = 0) -> list[dic
             raw = json.load(fh)
         questionnaire = load_questionnaire(path)
         spec = questionnaire_to_spec(questionnaire, seed=seed)
+        if template_id:
+            spec["layout"]["template_id"] = template_id
         plan = build_render_plan(spec)
         findings = audit(plan)
 
@@ -46,7 +51,7 @@ def run_eval_set(cases_dir: str | Path | None = None, seed: int = 0) -> list[dic
                 "case": path.stem,
                 "partner_a": raw["partner_a_name"].get("latin"),
                 "partner_b": raw["partner_b_name"].get("latin"),
-                "arrangement": spec["layout"]["monogram_arrangement"],
+                "arrangement": plan["arrangement"],
                 "findings": findings,
                 "counts": counts,
                 "passed": counts["FAIL"] == 0,

@@ -169,7 +169,7 @@ def _cmd_qa(args: argparse.Namespace) -> int:
 
 
 def _cmd_eval(args: argparse.Namespace) -> int:
-    results = run_eval_set(cases_dir=args.cases_dir, seed=args.seed)
+    results = run_eval_set(cases_dir=args.cases_dir, seed=args.seed, template_id=args.template)
 
     if args.json:
         print(json.dumps(results, indent=2, ensure_ascii=False))
@@ -244,6 +244,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_eval.add_argument("--cases-dir", help="Override eval/cases/ (mainly for testing)")
     p_eval.add_argument("--seed", type=int, default=0)
+    p_eval.add_argument("--template", help="Evaluate this template instead of the one each spec picks")
     p_eval.add_argument("--json", action="store_true", help="Machine-readable output")
     p_eval.set_defaults(func=_cmd_eval)
 

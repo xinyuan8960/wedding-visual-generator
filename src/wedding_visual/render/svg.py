@@ -30,6 +30,13 @@ def _motif_svg(motif: dict[str, Any], ink: str) -> str:
             f'<circle cx="{c[0]:g}" cy="{c[1]:g}" r="{motif["radius"]:g}" fill="none" '
             f'stroke="{ink}" stroke-width="{motif["stroke_width"]:g}"/>'
         )
+    if motif["type"] == "open-arc":
+        if not motif["d"]:
+            return ""
+        return (
+            f'<path d="{motif["d"]}" fill="none" stroke="{ink}" '
+            f'stroke-width="{motif["stroke_width"]:g}" stroke-linecap="round" stroke-linejoin="round"/>'
+        )
     if motif["type"] == "rule-and-diamond":
         cx, rule_y, half_len, r, stroke_width = (
             motif["cx"],
@@ -56,7 +63,8 @@ def render_monogram_svg(spec: dict[str, Any], template: dict[str, Any] | None = 
     plan = build_render_plan(spec, template)
 
     canvas_size, ink = plan["canvas_size"], plan["ink"]
-    glyph_paths = "\n  ".join(f'<path d="{g["d"]}" fill="{ink}"/>' for g in plan["glyphs"])
+    shapes = plan["glyphs"] + plan.get("captions", [])
+    glyph_paths = "\n  ".join(f'<path d="{g["d"]}" fill="{ink}"/>' for g in shapes)
     motif_svg = _motif_svg(plan["motif"], ink)
 
     background = ""

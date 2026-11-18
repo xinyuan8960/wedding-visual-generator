@@ -13,6 +13,7 @@ from ..geometry import union_bbox
 from ..layout.glyphs import Font
 from ..layout.monogram import compose_monogram, initial_of
 from ..templates import load_template, resolve_font_path
+from .plan_diagonal import build_diagonal_plan
 
 _MIN_MOTIF_CLEARANCE_PX = 3  # skip the rule/diamond entirely below this much vertical clearance
 
@@ -74,6 +75,9 @@ def build_render_plan(spec: dict[str, Any], template: dict[str, Any] | None = No
         )
 
     template = template or load_template(spec["layout"]["template_id"])
+    if template.get("layout") == "diagonal-ampersand":
+        return build_diagonal_plan(spec, template)
+
     font = Font(resolve_font_path(template))
 
     canvas_size = float(template["canvas_size"])

@@ -16,6 +16,9 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from fontTools.pens.pointInsidePen import PointInsidePen
+from fontTools.svgLib.path import parse_path
+
 from ..geometry import bbox_overlap, union_bbox
 from .color import contrast_ratio
 
@@ -40,12 +43,22 @@ def _finding(level: str, code: str, message: str) -> dict[str, str]:
     return {"level": level, "code": code, "message": message}
 
 
-def check_overflow(plan: dict[str, Any]) -> list[dict[str, str]]:
-    canvas = plan["canvas_size"]
-    boxes = [g["bbox"] for g in plan["glyphs"]]
+def _all_drawn_boxes(plan: dict[str, Any]) -> list[list[float]]:
+    boxes = [g["bbox"] for g in plan["glyphs"]] + [c["bbox"] for c in plan.get("captions", [])]
     if plan["motif"]["bbox"]:
         boxes.append(plan["motif"]["bbox"])
-    x0, y0, x1, y1 = union_bbox(boxes)
+    return boxes
+
+
+def _point_in_path(d: str, x: float, y: float) -> bool:
+    pen = PointInsidePen(None, (x, y))
+    parse_path(d, pen)
+    return pen.getResult()
+
+
+def check_overflow(plan: dict[str, Any]) -> list[dict[str, str]]:
+    canvas = plan["canvas_size"]
+    x0, y0, x1, y1 = union_bbox(_all_drawn_boxes(plan))
     if x0 < -0.5 or y0 < -0.5 or x1 > canvas + 0.5 or y1 > canvas + 0.5:
         return [
             _finding(
@@ -63,6 +76,24 @@ def check_motif_glyph_overlap(plan: dict[str, Any]) -> list[dict[str, str]]:
     if not motif["bbox"]:
         return []
     glyph_box = union_bbox([g["bbox"] for g in plan["glyphs"]])
+
+    if motif["type"] == "open-arc":
+        # Re-verify from the serialized glyph paths, independently of the arc builder's
+        # own gap logic (which works from font-space outlines): no arc sample may land
+        # inside a glyph's filled outline.
+        for seg in motif["segments"]:
+            for x, y in seg[::2]:
+                for g in plan["glyphs"]:
+                    gx0, gy0, gx1, gy1 = g["bbox"]
+                    if gx0 <= x <= gx1 and gy0 <= y <= gy1 and _point_in_path(g["d"], x, y):
+                        return [
+                            _finding(
+                                "FAIL",
+                                "motif-overlap",
+                                f"The arc passes through the {g['char']!r} glyph at ({x:.1f}, {y:.1f}).",
+                            )
+                        ]
+        return []
 
     if motif["type"] == "ring":
         # A ring's own bounding box is a square circumscribing the circle, which will
@@ -157,10 +188,7 @@ def check_bleed_margin(plan: dict[str, Any]) -> list[dict[str, str]]:
         return []
 
     canvas = plan["canvas_size"]
-    boxes = [g["bbox"] for g in plan["glyphs"]]
-    if plan["motif"]["bbox"]:
-        boxes.append(plan["motif"]["bbox"])
-    x0, y0, x1, y1 = union_bbox(boxes)
+    x0, y0, x1, y1 = union_bbox(_all_drawn_boxes(plan))
     min_margin = min(x0, y0, canvas - x1, canvas - y1)
     required = canvas * MIN_BLEED_MARGIN_RATIO
     if min_margin < required:

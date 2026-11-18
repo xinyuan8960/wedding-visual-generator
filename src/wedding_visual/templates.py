@@ -26,4 +26,8 @@ def load_template(template_id: str) -> dict[str, Any]:
 
 
 def resolve_font_path(template: dict[str, Any]) -> Path:
-    return repo_root(marker_dir="fonts") / template["font_path"]
+    return resolve_repo_path(template["font_path"])
+
+
+def resolve_repo_path(relative: str) -> Path:
+    return repo_root(marker_dir="fonts") / relative
