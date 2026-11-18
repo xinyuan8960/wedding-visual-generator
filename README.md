@@ -221,3 +221,8 @@ python scripts/make_readme_images.py    # regenerate docs/images/ (deterministic
 
 See [`AGENTS.md`](AGENTS.md) for the repo's rules: determinism, parameters-only
 templates, open-licensed fonts, small commits that explain why.
+
+## License
+
+Code: [MIT](LICENSE). Bundled fonts keep their own SIL Open Font License 1.1. See
+[`fonts/README.md`](fonts/README.md).
